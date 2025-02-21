@@ -1,13 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-lda_qda.py
-
-Models: Discriminant analysis
-
-This code snippet explores Linear Discriminant Analysis (LDA),
-Quadratic Discriminant Analysis (QDA), Fisher Discriminant Analysis
-"""
-
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.base import BaseEstimator, LinearClassifierMixin
@@ -15,16 +5,39 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis, QuadraticD
 from scipy.optimize import minimize
 import utils
 
+"""
+Linear and Quadratic Discriminant Analysis (LDA and QDA)
+
+This script implements LDA and FisherDA from scratch and compares them with
+scikit-learn's LDA and QDA. It generates synthetic data to visualize the
+decision boundaries of these classifiers.
+"""
+
 class LDA(BaseEstimator, LinearClassifierMixin):
     """
     LDA classifier for two classes (implementation from scratch).
+
+    This class implements a linear discriminant analysis classifier from scratch,
+    following the scikit-learn estimator API.
     """
     def __init__(self, prior=None):
-        """Initializes the LDA classifier."""
+        """
+        Initializes the LDA classifier.
+
+        Args:
+            prior (bool, optional): Whether to use prior in the intercept.
+                                     Default is None (not used).
+        """
         self.prior = prior
 
     def fit(self, X, y):
-        """Fits the LDA classifier to the training data."""
+        """
+        Fits the LDA classifier to the training data.
+
+        Args:
+            X (np.ndarray): The training data (features), shape (n_samples, n_features).
+            y (np.ndarray): The target variable (labels), shape (n_samples,).
+        """
         X1 = X[y == 1]
         X0 = X[y == 0]
         mu1 = np.mean(X0, axis=0)
@@ -40,11 +53,27 @@ class LDA(BaseEstimator, LinearClassifierMixin):
         print("LDA has been fitted to Data")
 
     def decision_function(self, X):
-        """Computes the decision function for the input data."""
+        """
+        Computes the decision function for the input data.
+
+        Args:
+            X (np.ndarray): The input data (features), shape (n_samples, n_features).
+
+        Returns:
+            np.ndarray: The decision function values for each sample.
+        """
         return np.array([np.dot(self.hCoef, x) + self.b for x in X])
 
     def predict(self, X):
-        """Predicts the class labels for the input data."""
+        """
+        Predicts the class labels for the input data.
+
+        Args:
+            X (np.ndarray): The input data (features), shape (n_samples, n_features).
+
+        Returns:
+            np.ndarray: The predicted class labels for each sample (0 or 1).
+        """
         truFalsePred = self.decision_function(X) >= 0
         return np.array([int(x) for x in truFalsePred])
 
@@ -55,7 +84,13 @@ class FisherDA(BaseEstimator, LinearClassifierMixin):
     """
 
     def fit(self, X, y):
-        """Fits the FisherDA classifier to the training data."""
+        """
+        Fits the FisherDA classifier to the training data.
+
+        Args:
+            X (np.ndarray): The training data (features).
+            y (np.ndarray): The target variable (labels).
+        """
         self.label = y
         X1 = X[y == 1]
         X0 = X[y == 0]
@@ -75,18 +110,43 @@ class FisherDA(BaseEstimator, LinearClassifierMixin):
         return self
 
     def intercept(self, a):
-        """Calculates the intercept (threshold) for classification."""
+        """
+        Calculates the intercept (threshold) for classification.
+
+        Args:
+            a (float): A candidate intercept value.
+
+        Returns:
+            float: Mean misclassification rate of FisherDA + the potential candidate intercept, by minimizing this score
+                   we will find the proper intercept which best separated our labeled samples.
+        """
         return np.mean(self.label == (self.hx + a < 0))
 
     def decision_function(self, X):
-        """Computes the decision function for the input data."""
+        """
+        Computes the decision function for the input data.
+
+        Args:
+            X (np.ndarray): The input data (features).
+
+        Returns:
+            np.ndarray: The decision function values for each sample.
+        """
         self.hx = np.array([np.dot(self.hCoef, x) for x in X]) # For each value, the score between the 'hCoef' and the potential sample "X".
 
         # Returns the final score
         return self.hx + self.b
 
     def predict(self, X):
-        """Predicts the class labels for the input data."""
+        """
+        Predicts the class labels for the input data.
+
+        Args:
+            X (np.ndarray): The input data (features).
+
+        Returns:
+            np.ndarray: The predicted class labels for each sample (0 or 1).
+        """
         truFalsePred = self.decision_function(X) < 0 # If under 0 will yield true , else will yield false.
         return np.array([int(x) for x in truFalsePred])
 
@@ -172,7 +232,7 @@ if __name__ == '__main__':
     # Plot QDA decision boundary
     plt.figure()
     utils.plotXY(X,y)
-    utils.plot_frontiere(qda, data=X, label=y) # Used fixed X
+    utils.plot_frontiere(qda, data=X, label=y)
     plt.title("Anisotropic Data and QDA")
     plt.xlabel("Feature 1")
     plt.ylabel("Feature 2")
